@@ -1,0 +1,242 @@
+package com.nkdebug.swaggerapp.controller;
+
+
+import com.nkdebug.swaggerapp.model.Book;
+import com.nkdebug.swaggerapp.service.BookService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/book")
+public class BookResource {
+
+    @Autowired
+    private BookService bookService;
+
+    @PostMapping("/save")
+    public String saveBook(@RequestBody Book book) {
+        return bookService.saveBook(book);
+    }
+
+    @GetMapping("/searchBook/{bookId}")
+    public Optional<Book> getBook(@PathVariable int bookId) {
+        return bookService.getBook(bookId);
+    }
+    @DeleteMapping("/deleteBook/{bookId}")
+    public List<Book> deleteBook(@PathVariable int bookId) {
+       return bookService.removeBook(bookId);
+    }
+
+}
+
+
+
+
+package com.nkdebug.swaggerapp.service;
+
+
+import com.nkdebug.swaggerapp.model.Book;
+import com.nkdebug.swaggerapp.repository.BookRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class BookService {
+
+    @Autowired
+    BookRepository bookRepository;
+
+    public String saveBook(Book book) {
+
+        // validations before saving any data to DB..
+        if(book == null) {
+            return "Invalid Book Object";
+        }
+        bookRepository.save(book);
+        return "book save with id"+ book.getBookId();
+    }
+
+    public Optional<Book> getBook(int bookId) {
+        return bookRepository.findById(bookId);
+    }
+
+    public List<Book> removeBook(int bookId) {
+        bookRepository.deleteById(bookId);
+        return bookRepository.findAll();
+    }
+
+}
+
+
+package com.nkdebug.swaggerapp.repository;
+
+import com.nkdebug.swaggerapp.model.Book;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface BookRepository extends JpaRepository<Book, Integer> {
+}
+
+
+package com.nkdebug.swaggerapp.model;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import java.io.Serializable;
+
+@Entity
+@Table(name="book")
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
+public class Book implements Serializable {
+
+    @Id
+    @GeneratedValue
+    private int bookId;
+    private String bookName;
+    private double price;
+
+}
+
+
+package com.nkdebug.swaggerapp.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import springfox.documentation.builders.ApiInfoBuilder;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
+import static springfox.documentation.builders.PathSelectors.regex;
+
+@Configuration
+@EnableSwagger2
+public class BookConfig {
+
+    @Bean
+    public Docket postsApi() {
+        return new Docket(DocumentationType.SWAGGER_2).groupName("Book Nkdebug API").apiInfo(apiInfo())
+                .select()
+                .paths(regex("/book.*")).build();
+    }
+
+    public ApiInfo apiInfo() {
+        return new ApiInfoBuilder().title("Book Service")
+                .description("Sample Documentation Generated Using Swagger for our REST API")
+                .termsOfServiceUrl("https://linktr.ee/nkdebug")
+                .license("Nkdebug License")
+                .licenseUrl("https://linktr.ee/nkdebug")
+                .version("1.0")
+                .build();
+    }
+}
+
+
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>1.5.9.RELEASE</version>
+        <relativePath/> <!-- lookup parent from repository -->
+
+
+    </parent>
+    <groupId>com.nkdebug</groupId>
+    <artifactId>swaggerapp</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>swaggerapp</name>
+    <description>swagger project for Spring Boot</description>
+    <properties>
+        <java.version>1.8</java.version>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+
+        <!-- https://mvnrepository.com/artifact/io.springfox/springfox-swagger2 -->
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>2.5.0</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui -->
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+            <version>2.5.0</version>
+        </dependency>
+
+
+
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

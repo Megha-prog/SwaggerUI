@@ -1,0 +1,5 @@
+com\example\swagger\BookRepository.class
+com\example\swagger\BookController.class
+com\example\swagger\BookService.class
+com\example\swagger\Book.class
+com\example\swagger\SwaggerApplication.class
